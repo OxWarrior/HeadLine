@@ -65,14 +65,14 @@ export default {
       commentLists: [], // 评论列表
       show: false, // 评论框显示
       totalCount: 0, // 评论总数
-      content: '',
+      content: '', // 文本域评论内容
       loading: false, // 滚动加载状态
       finished: false // 滚动加载是否结束
 
     }
   },
   created () {
-    // if (this.commentLists === []) { this.getCommentList() }
+    this.getCommentList()
     // // 获取评论 渲染
     // const res = await getCommentListAPI({
     //   artId: this.$route.query.id
@@ -134,7 +134,10 @@ export default {
     },
     // 滚动加载
     async onLoad () {
-      this.getCommentList()
+      // 有评论才滚动加载
+      if (this.commentLists.length > 0) {
+        this.getCommentList()
+      }
     },
     // 获取评论
     async getCommentList () {

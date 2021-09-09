@@ -7,7 +7,8 @@ const userModule = {
   state: {
     // 绑定用户登录返回的token,保存至本地
     token: window.localStorage.getItem('token') || '',
-    refresh_token: window.localStorage.getItem('refresh_token') || ''
+    refresh_token: window.localStorage.getItem('refresh_token') || '',
+    user: JSON.parse(window.localStorage.getItem('userInfo')) || {}
   },
   mutations: {
     // 设置token
@@ -20,6 +21,11 @@ const userModule = {
       state.refresh_token = val
       // 本地存储
       localStorage.setItem('refresh_token', val)
+    },
+    // 设置用户信息
+    setUser (state, val) {
+      state.user = val
+      localStorage.setItem('userInfo', JSON.stringify(val))
     }
   },
   actions: {
@@ -31,6 +37,7 @@ const userModule = {
       // 返回一个promise对象在login页面错误处理
       return Promise.resolve(res)
     }
+
   },
   modules: {
   }

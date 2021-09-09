@@ -35,7 +35,7 @@
     <!-- 操作面板 -->
     <van-cell-group class="action-card">
       <van-cell icon="edit" title="编辑资料" is-link to="/user/edit" />
-      <van-cell icon="chat-o" title="小思同学" is-link />
+      <van-cell icon="chat-o" title="小思同学" is-link to="/chat"/>
       <van-cell icon="warning-o" title="退出登录" is-link @click="logOutFn" />
     </van-cell-group>
   </div>
@@ -55,6 +55,7 @@ export default {
     const res = await getUserAPI()
     // console.log(res)
     this.userObj = res.data.data
+    this.$store.commit('user/setUser', res.data.data)
   },
   methods: {
     ...mapMutations('user', ['setToken', 'setRefreshToken']),
