@@ -32,7 +32,7 @@
       <!-- 生日 -->
       <van-cell title="生日" is-link :value="userProfileObj.birthday" @click="showBirthday" />
       <van-popup v-model="show" position="bottom" :style="{ height: '50%' }">
-        <van-datetime-picker v-model="currentDate" type="date" title="选择生日" :min-date="minDate" :max-date="maxDate" @confirm="updateBirthday"/>
+        <van-datetime-picker v-model="currentDate" type="date" title="选择生日" :min-date="minDate" :max-date="maxDate" @confirm="updateBirthday" />
       </van-popup>
     </van-cell-group>
 
@@ -104,16 +104,25 @@ export default {
       // console.log(action, done)
       // 判断点击取消还是确认按钮，确认才提交数据给后台
       if (action === 'confirm') {
-        if (/^[a-zA-Z\u4E00-\u9FA5][a-zA-Z0-9\u4E00-\u9FA5_-]{3,15}$/.test(this.value)) {
-          await updateUserProfileAPI({ name: this.value })
-          // console.log(res)
-          done()
-          // 修改页面name
-          this.userProfileObj.name = this.value
-          Toast('用户名修改成功')
-        } else {
-          Toast('请输入正确用户名，用户名3到15位')
+        if (this.value === '') {
+          Toast('用户名不能为空')
           done(false)
+        } else if (!/^[a-zA-Z\u4E00-\u9FA5]{1,7}$/i.test(this.value)) {
+          Toast('请输入正确用户名，用户名1到7位,只支持英文和数字')
+          done(false)
+        } else {
+          try {
+            await updateUserProfileAPI({ name: this.value })
+            // console.log(res)
+            done()
+            // 修改页面name
+            this.userProfileObj.name = this.value
+            Toast.success('用户名修改成功')
+          } catch (err) {
+            Toast.fail('用户名修改出错')
+          } finally {
+            done()
+          }
         }
       } else {
         done()
