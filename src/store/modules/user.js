@@ -1,4 +1,5 @@
 import { loginAPI } from '@/api/login'
+import Storage from '../../utils/storage'
 
 // 定义user模块
 const userModule = {
@@ -6,26 +7,35 @@ const userModule = {
   strict: true,
   state: {
     // 绑定用户登录返回的token,保存至本地
-    token: window.localStorage.getItem('token') || '',
-    refresh_token: window.localStorage.getItem('refresh_token') || '',
-    user: JSON.parse(window.localStorage.getItem('userInfo')) || {}
+    token: Storage.get('token') || '',
+    refresh_token: Storage.get('refresh_token') || '',
+    user: {
+      photo: Storage.get('userInfo') || ''
+    }
+
   },
   mutations: {
     // 设置token
     setToken (state, val) {
       state.token = val
       // 本地存储
-      localStorage.setItem('token', val)
+      Storage.set('token', val)
     },
     setRefreshToken (state, val) {
       state.refresh_token = val
       // 本地存储
-      localStorage.setItem('refresh_token', val)
+      Storage.set('refresh_token', val)
     },
     // 设置用户信息
     setUser (state, val) {
-      state.user = val
-      localStorage.setItem('userInfo', JSON.stringify(val))
+      state.user.photo = val
+      Storage.set('userInfo', val)
+    },
+    setUserInfo (state, val) {
+      state.user = {
+        ...state.user,
+        ...val
+      }
     }
   },
   actions: {

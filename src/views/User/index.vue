@@ -42,23 +42,27 @@
 </template>
 
 <script>
-import { mapMutations } from 'vuex'
+import { mapMutations, mapState } from 'vuex'
 import { Dialog } from 'vant'
 import { getUserAPI } from '@/api/user'
 export default {
   data () {
     return {
-      userObj: ''
+      // userObj: ''
     }
   },
   async created () {
     const res = await getUserAPI()
     // console.log(res)
-    this.userObj = res.data.data
-    this.$store.commit('user/setUser', res.data.data)
+    // this.userObj = res.data.data
+    // this.setUser(this.userObj.photo)
+    this.setUserInfo(res.data.data)
+  },
+  computed: {
+    ...mapState('user', { userObj: 'user' })
   },
   methods: {
-    ...mapMutations('user', ['setToken', 'setRefreshToken']),
+    ...mapMutations('user', ['setToken', 'setRefreshToken', 'setUser', 'setUserInfo']),
     logOutFn () {
       Dialog.confirm({
         title: '退出登录',

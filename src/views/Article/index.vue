@@ -1,5 +1,5 @@
 <template>
-  <div class="article-detail__container">
+  <div class="article-detail__container" v-if="loading === false">
     <!-- Header 区域 -->
     <van-nav-bar fixed title="文章详情" left-arrow @click-left="$router.back()" />
 
@@ -46,20 +46,33 @@
 import { getArticleAPI, followAuthorAPI, unFollowAuthorAPI, likeArticleAPI, disLikeArticleAPI } from '@/api/article'
 import { Toast } from 'vant'
 import Comment from './Comment.vue'
+
 export default {
   name: 'ArticleDetail',
   data () {
+    this.toast = Toast.loading({
+      duration: 0, // 持续展示 toast
+      forbidClick: true,
+      message: '加载中...'
+    })
     return {
+      loading: true,
       articleObj: {}
     }
   },
   components: {
     Comment
   },
-  async created () {
+
+  async activated () {
     const res = await getArticleAPI({ artId: this.$route.query.id })
     // console.log(res)
+    this.loading = false
+    if (!this.loading) {
+      this.toast.clear()
+    }
     this.articleObj = res.data.data
+    window.scrollTo(0, 0)
   },
   methods: {
     // 关注 or 取关作者

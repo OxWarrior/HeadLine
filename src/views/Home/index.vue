@@ -11,7 +11,7 @@
     </van-nav-bar>
 
     <!-- tab栏 -->
-    <van-tabs v-model="activeId" sticky offset-top="1.226667rem" animated>
+    <van-tabs v-model="activeId" sticky offset-top="1.226667rem" animated @scroll="scollTo">
       <van-tab :title="obj.name" v-for="obj in channelList" :key="obj.id" :name="obj.id">
         <!-- 文章 -->
 
@@ -43,6 +43,11 @@ import { Toast } from 'vant'
 import ArticleList from './ArticleList'
 import { getSelectChannelAPI, getArticleListAPI, updateChannelListAPI } from '@/api/home'
 import ChannelEdit from './ChannelEdit.vue'
+
+const cacheObj = {
+
+}
+
 export default {
   name: 'Home',
   components: {
@@ -60,10 +65,20 @@ export default {
       isLoading: false, // 下拉加载是否处于加载中状态
       // timestamp: undefined
       show: false, // 频道管理弹出层可见性
-      disabled: false
+      disabled: false,
+      cacheObj
 
     }
   },
+  beforeRouteLeave (to, from, next) {
+    next()
+    // console.log(window.scrollY)
+    this.scroll = window.scrollY
+  },
+  activated () {
+    window.scrollTo(0, this.scroll || 0)
+  },
+
   async created () {
     // 获取已选文章列表
     const res = await getSelectChannelAPI()
@@ -75,18 +90,41 @@ export default {
   },
   watch: {
     // 检测文章id变化
-    activeId () {
+    async activeId () {
       // id 变化  --- 清空文章获取过的数组和保存的过上一页值
-      this.finished = false // 旧频道加载完成没有更多数据，将加载完成改为false，重新加载
+
       this.articleLists = []
-      this.timestamp = undefined
-      // 调用获取文章
-      this.getArticleList()
+      // 有对象和缓存到距离才赋值这个否则为0
+      const scroll = cacheObj[this.activeId] && cacheObj[this.activeId].scrollY ? cacheObj[this.activeId].scrollY : 0
+
+      // 每次切换不能直接将timestamp置为undefined,如果缓存有值,用缓存，否则会出现重复key
+      this.timestamp = cacheObj[this.activeId] && cacheObj[this.activeId].timestamp ? cacheObj[this.activeId].timestamp : undefined
+      this.finished = false // 旧频道加载完成没有更多数据，将加载完成改为false，重新加载
+      // 调用获取文章，得到结果后才滚动到保存位置
+      await this.getArticleList()
+      this.$nextTick(() => {
+        // console.log('watch', scroll)
+        window.scrollTo(0, scroll)
+      })
     }
   },
   methods: {
+    scollTo ({ scrollTop }) {
+      // console.log('scroll', scrollTop)
+      // 没有值赋一个空对象，确保存在
+      if (cacheObj[this.activeId] === undefined) {
+        cacheObj[this.activeId] = {}
+      }
+      cacheObj[this.activeId].scrollY = scrollTop
+    },
     // 定义获取文章的方法函数方便调用，异步
     async getArticleList (isPullUp = true) {
+      // 先判断缓存中是否有缓存数据
+      if (cacheObj[this.activeId] && cacheObj[this.activeId].list && this.loading === false) {
+        this.articleLists = cacheObj[this.activeId].list
+        return
+      }
+
       // 获取用户选中的文章
       const resp = await getArticleListAPI({
         channel_id: this.activeId,
@@ -108,6 +146,7 @@ export default {
 
       // 将上一次请求的值保存给变量timestamp
       this.timestamp = pre_timestamp
+
       // 数据预处理
       results.forEach(obj => {
         obj.pubdate = this.$time(obj.pubdate)
@@ -125,6 +164,17 @@ export default {
         this.isLoading = false
         Toast.success('刷新成功')
       }
+      /**
+       * cacheObj={
+       *  id:{
+       *    list,
+       *    timestamp
+       *  }
+       * }
+       */
+      cacheObj[this.activeId] = {}
+      cacheObj[this.activeId].list = this.articleLists
+      cacheObj[this.activeId].timestamp = this.timestamp
     },
     // 时间处理函数，时间处理用moment
     // getTimeAgo (targetDate) {
@@ -173,13 +223,15 @@ export default {
 
     // 下拉刷新
     onRefresh () {
+      // 刷新是不需要缓存的，将对象中id置为空，判断就不会生效了
+      cacheObj[this.activeId] = undefined
       this.getArticleList(false)
     },
     // 反馈不喜欢文章在数据中删除
     dislikeArtFn (index, height) {
       // console.log(1)
       // console.log(index)
-      console.log(height)
+      // console.log(height)
       this.articleLists.splice(index, 1)
 
       // console.log(window.innerHeight)

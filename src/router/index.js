@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 
 // 路由懒加载 --- 匹配路径，return引入的组件
+// 可以分为正常加载和懒加载，此处的login,home,layout可以首次直接加载
 
 // import Login from '@/views/Login'
 // import Layout from '@/views/Layout'
@@ -36,7 +37,7 @@ const routes = [
     },
     {
       path: 'user',
-      component: () => import('@/views/User')
+      component: () => import(/* webpackChunkName: 'User' */'@/views/User')
     }]
   },
   {
@@ -67,9 +68,28 @@ const router = new VueRouter({
 })
 
 // 路由守卫
+
+const unAtho = ['/login']
 router.beforeEach((to, from, next) => {
-  if (to.path !== '/login' && store.state.user.token === null) return next(false)
-  next()
+  const { token } = store.state.user
+  // 有token
+  if (token) {
+    // 去login页面阻止，没必要跳转
+    if (unAtho.includes(to.path)) {
+      next(false)
+    } else {
+      // 其他页面正常跳转
+      next()
+    }
+    // 无token
+  } else {
+    if (unAtho.includes(to.path)) {
+      next()
+    } else {
+      // 跳转到登录页，登陆成功回跳
+      next(`/login?redirect=${to.path}`)
+    }
+  }
 })
 
 export default router

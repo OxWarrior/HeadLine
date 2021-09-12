@@ -71,7 +71,15 @@ export default {
 
     }
   },
-  created () {
+  deactivated () {
+    // 缓存，评论组件的created只触发一次，切走并不会初始化
+    this.commentLists = []
+    this.totalCount = 0
+    this.content = ''
+    this.loading = false
+    this.finished = false
+  },
+  activated () {
     this.getCommentList()
     // // 获取评论 渲染
     // const res = await getCommentListAPI({
@@ -149,7 +157,7 @@ export default {
       // console.log(res)
       const { total_count: totalCount, results, last_id: lastId } = res.data.data
       if (lastId === null || results === []) {
-        Toast('没有更多评论了')
+        // Toast('没有更多评论了')
         this.finished = true
         return
       }
@@ -282,4 +290,5 @@ export default {
     border: none;
   }
 }
+
 </style>

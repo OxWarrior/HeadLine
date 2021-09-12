@@ -8,11 +8,11 @@
           <!-- 标题 -->
           <span>{{obj.title}}</span>
           <!-- 单图 -->
-          <img class="thumb" :src="obj.cover.images[0]" v-if="obj.cover.type === 1" />
+          <img class="thumb" v-lazy="obj.cover.images[0]" v-if="obj.cover.type === 1" />
         </div>
         <!-- 多张图片 -->
         <div class="thumb-box" v-if="obj.cover.type > 1">
-          <img class="thumb" v-for="(item,index) in obj.cover.images" :key="index" :src="item" />
+          <img class="thumb" v-for="(item,index) in obj.cover.images" :key="index" v-lazy="item" />
         </div>
       </template>
       <!-- label 区域的插槽 -->

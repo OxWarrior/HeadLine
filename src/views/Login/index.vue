@@ -51,7 +51,7 @@ export default {
         // this.setToken(res.data.data.token)
         // this.setRefreshToken(res.data.data.refresh_token)
         Toast.success('登陆成功')
-        this.$router.replace('/layout')
+        this.$router.replace(this.$route.query.redirect || '/layout')
       } catch (err) {
         console.log(err)
         Toast.fail('登陆失败')

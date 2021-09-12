@@ -1,6 +1,10 @@
 <template>
   <div id="hm-toutiao__container">
-    <router-view/>
+    <!-- keep-alive组件包裹动态挂载点 -->
+    <keep-alive :exclude="['ResultList']">
+      <router-view />
+
+    </keep-alive>
 
   </div>
 </template>

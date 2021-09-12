@@ -1,7 +1,12 @@
 <template>
   <div>
     <div class="main-container">
-      <router-view />
+      <keep-alive>
+        <router-view />
+
+      </keep-alive>
+      <!-- <p v-color="color"></p> -->
+
     </div>
 
     <!-- 导航栏 -->
@@ -17,6 +22,7 @@ export default {
   data () {
     return {
       active: 'home'
+      // color: 'red'
     }
   }
 }

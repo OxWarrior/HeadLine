@@ -37,4 +37,12 @@ const updateUserProfileAPI = ({ name, birthday }) => {
   })
 }
 
-export { getUserAPI, editUserAPI, updateUserPhotoAPI, updateUserProfileAPI }
+// token续签
+const updateTokenAPI = () => {
+  return request({
+    method: 'PUT',
+    url: '/v1_0/authorizations'
+  })
+}
+
+export { getUserAPI, editUserAPI, updateUserPhotoAPI, updateUserProfileAPI, updateTokenAPI }

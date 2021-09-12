@@ -7,22 +7,22 @@
     <div class="chat-list">
       <div v-for="(obj,index) in list" :key="index">
         <!-- 左侧是机器人小思 -->
-        <div class="chat-item left" v-if="obj.name === 'xs'">
+        <div class="chat-item left" v-if="obj.name === 'xs'" ref="chatItem">
           <van-image fit="cover" round src="https://img.yzcdn.cn/vant/cat.jpeg" />
           <div class="chat-pao">{{obj.msg}}</div>
         </div>
 
         <!-- 右侧是当前用户 -->
-        <div class="chat-item right" v-if="obj.name === 'me'">
+        <div class="chat-item right" v-else ref="chatItem">
           <div class="chat-pao">{{obj.msg}}</div>
-          <van-image fit="cover" round src="https://img.yzcdn.cn/vant/cat.jpeg" />
+          <van-image fit="cover" round :src="user.photo" />
         </div>
       </div>
     </div>
 
     <!-- 对话区域 -->
     <div class="reply-container van-hairline--top">
-      <van-field placeholder="说点什么..." v-model="value">
+      <van-field placeholder="说点什么..." v-model.trim="value" @keydown.enter="sendMessage">
         <template #button>
           <span style="font-size:12px;color:#999" @click="sendMessage">提交</span>
         </template>
@@ -33,9 +33,12 @@
 
 <script>
 import { io } from 'socket.io-client'
+import { Toast } from 'vant'
+
+import { mapState } from 'vuex'
 
 // 表示连接状态
-var socket = null
+var socket
 
 // 服务端
 // socket.emit 表示触发某个事件  ---- 给浏览器发送数据
@@ -54,33 +57,46 @@ export default {
       list: [
         { name: 'xs', msg: 'Hi，我是小思，我能帮你什么呢' }
         // { name: 'me', msg: '我是编程小王子，我要找老板加薪' }
+
       ]
     }
   },
+  computed: {
+    ...mapState('user', ['user'])
+  },
+  // 监听切回来的钩子。切换后scroll
+  activated () {
+    this.scrollFn(false)
+  },
   created () {
-    socket = io('http://toutiao.itheima.net', {
+    socket = io('ws://toutiao.itheima.net', {
       query: {
         token: this.$store.state.user.token
       },
-      transports: ['websocket'] // ?
+      transports: ['websocket']
     })
     // 监听连接服务端
     socket.on('connect', () => {
       console.log('连接服务端WebSocket成功')
-    })
-    // 监听服务端消息(接收消息)
-    socket.on('message', (data) => {
-      console.log(data.msg)
-      this.list.push({
-        name: 'xs',
-        msg: data.msg
+      // 监听服务端消息(接收消息)
+      socket.on('message', data => {
+        if (this.value === '') {
+          Toast('消息不能为空')
+          return
+        }
+        console.log(data.msg)
+        this.list.push({
+          name: 'xs',
+          msg: data.msg
+        })
+        this.scrollFn()
       })
     })
   },
   // 关闭连接, 清空socket
   beforeDestroy () {
     // 关闭连接
-    socket.close()
+    socket && socket.close()
 
     // 销毁 websocket 实例对象
     socket = null
@@ -99,6 +115,17 @@ export default {
         msg: this.value
       })
       this.value = ''
+      this.scrollFn()
+    },
+    // 自动滚动,自定义开启动画
+    scrollFn (isAnimated = true) {
+      this.$nextTick(() => {
+        const el = this.$refs.chatItem[this.$refs.chatItem.length - 1]
+        console.log(el)
+        el.scrollIntoView({
+          behavior: isAnimated ? 'smooth' : 'auto'
+        })
+      })
     }
   }
 }
